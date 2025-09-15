@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use cmake::Config;
+use std::env;
+use std::fs;
 
 fn main() {
-    use std::env;
-    use std::fs;
-
     // Skip building the library when building documentation
     if env::var("DOCS_RS").is_ok() {
         return;
@@ -37,37 +36,36 @@ rustflags = ["-Zshare-generics=off"]
 
     let out_dir = std::env::var("OUT_DIR").unwrap();
 
-    env::set_var("CMAKE_GENERATOR", "Ninja");
     env::set_var("CMAKE_BUILD_TYPE", "Release");
 
     let cxxflags = if cfg!(windows) { "/EHsc" } else { "" };
 
     Config::new("manifold")
         .cxxflag(cxxflags) //  MSVC flag to enable exception handling
+        .define("CMAKE_C_COMPILER", "clang")
+        .define("CMAKE_CXX_COMPILER", "clang++")
         .define("CMAKE_BUILD_TYPE", "Release")
         .define("MANIFOLD_CROSS_SECTION", "ON")
         .define("MANIFOLD_TEST", "OFF")
         .define("BUILD_SHARED_LIBS", "OFF")
         .define("MANIFOLD_CBIND", "OFF")
         .define("MANIFOLD_EXCEPTIONS", "OFF")
+        .define("MANIFOLD_PAR", "OFF")
         .build();
 
     cxx_build::bridge("src/lib.rs")
         .std("c++17")
         .file("src/manifold_rs.cpp")
         .include("./src")
-        .include("./manifold/src/manifold/include")
-        .include("./manifold/src/utilities/include")
         .include(format!("{out_dir}/include"))
         .compile("manifold_rs");
 
     println!("cargo:rustc-link-search={out_dir}/lib");
     println!("cargo:rustc-link-lib=static=manifold");
-
-    println!("cargo:rustc-link-search={out_dir}/build/_deps/clipper2-build");
     println!("cargo:rustc-link-lib=static=Clipper2");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
+    println!("cargo:rerun-if-changed=src/output.rs");
     println!("cargo:rerun-if-changed=src/manifold_rs.h");
     println!("cargo:rerun-if-changed=src/manifold_rs.cpp");
 }
