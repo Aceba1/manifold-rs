@@ -37,14 +37,10 @@ rustflags = ["-Zshare-generics=off"]
 
     let out_dir = std::env::var("OUT_DIR").unwrap();
 
-    env::set_var("CMAKE_PREFIX_PATH", format!("{out_dir}/build/glm"));
     env::set_var("CMAKE_GENERATOR", "Ninja");
     env::set_var("CMAKE_BUILD_TYPE", "Release");
 
     let cxxflags = if cfg!(windows) { "/EHsc" } else { "" };
-
-    let glm = Config::new("glm").cxxflag(cxxflags).build();
-    println!("cargo:rustc-link-search=native={}", glm.display());
 
     Config::new("manifold")
         .cxxflag(cxxflags) //  MSVC flag to enable exception handling

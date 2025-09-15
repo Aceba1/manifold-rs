@@ -11,8 +11,6 @@ readme = "README.md"
 repository = "https://github.com/WilstonOreo/manifold-rs"
 
 exclude = [
-    "glm/doc/**/*",
-    "glm/test/**/*",
     "manifold/docs/**/*",
     "manifold/test/**/*",
     "manifold/samples/**/*",
